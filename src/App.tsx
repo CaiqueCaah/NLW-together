@@ -1,5 +1,5 @@
 import { BrowserRouter, Route } from 'react-router-dom'
-import { createContext, useState } from 'react'
+import { createContext, useState, useEffect } from 'react'
 
 import { Home } from "./pages/Home";
 import { NewRoom } from "./pages/NewRoom"
@@ -24,6 +24,26 @@ function App() {
   //state react para enviar o contexto
   const [user, setUser] = useState<User>();
 
+  //se detectar que o usuario já estava logado mesmo recarregando a pagina, 
+  //tenta recuperar os dados (recupera contexto)
+  useEffect(() => {
+    auth.onAuthStateChanged(user => {
+      if(user){
+        const { displayName, photoURL, uid } = user;
+
+        if(!displayName || !photoURL){
+          throw new Error('Missing information from Google Account')
+        }
+
+        setUser({
+          id: uid,
+          name: displayName,
+          avatar: photoURL
+        })
+      }
+    })
+  }, [])
+
   //function que faz o login no google
   async function signInWithGoogle(){
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -37,7 +57,7 @@ function App() {
       if(!displayName || !photoURL){
         throw new Error('Missing information from Google Account')
       }
-      
+
       setUser({
         id: uid,
         name: displayName,
